@@ -1,10 +1,15 @@
 using System.Data;
+using GenericRepositoryPattern.Database;
 using GenericRepositoryPattern.Entities;
 
 namespace GenericRepositoryPattern.Repositories
 {
     public class UserRepository : AdoRepository<User>
     {
+        public UserRepository(IDbConnectionProvider dbProvider) : base(dbProvider, "Users")
+        {
+        }
+
         protected override User PopulateRecord(IDataReader reader)
         {
             return new User

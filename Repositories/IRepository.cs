@@ -10,6 +10,6 @@ namespace GenericRepositoryPattern.Repositories
 
         IEnumerable<T> GetByQuery(Func<T, bool> selector);
 
-        void Save(T item);
+        bool Save(T item);
     }
 }
