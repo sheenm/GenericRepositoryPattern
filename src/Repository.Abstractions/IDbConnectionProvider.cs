@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace GenericRepositoryPattern.Database
+namespace Repository.Abstractions
 {
     public interface IDbConnectionProvider
     {

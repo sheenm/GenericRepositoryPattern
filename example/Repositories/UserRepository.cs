@@ -1,6 +1,7 @@
 using System.Data;
 using GenericRepositoryPattern.Database;
 using GenericRepositoryPattern.Entities;
+using Repository.Abstractions;
 
 namespace GenericRepositoryPattern.Repositories
 {

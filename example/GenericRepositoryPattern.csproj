@@ -9,4 +9,8 @@
     <PackageReference Include="Npgsql" Version="4.0.0-rc1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\Repository.Abstractions\Repository.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

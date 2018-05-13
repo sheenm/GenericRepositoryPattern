@@ -1,5 +1,7 @@
+using System;
 using System.Data;
 using Npgsql;
+using Repository.Abstractions;
 
 namespace GenericRepositoryPattern.Database
 {

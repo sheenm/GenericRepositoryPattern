@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace GenericRepositoryPattern.Repositories
+namespace Repository.Abstractions
 {
     public interface IRepository<T>
     {

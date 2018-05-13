@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using GenericRepositoryPattern.Database;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace GenericRepositoryPattern.Repositories
+namespace Repository.Abstractions
 {
     public abstract class AdoRepository<T> : IRepository<T>
     {
