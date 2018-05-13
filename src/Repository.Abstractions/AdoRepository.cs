@@ -122,7 +122,7 @@ namespace Repository.Abstractions
             parameter.ParameterName = GetParameterName(property);
             parameter.Value = property.GetValue(item);
             parameter.Direction = ParameterDirection.Input;
-            parameter.DbType = GetDbType(property.GetType());
+            parameter.DbType = GetDbType(property.PropertyType);
             return parameter;
         }
 
