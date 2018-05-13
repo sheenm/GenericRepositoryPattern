@@ -1,11 +1,18 @@
 using System;
 using Xunit;
 using Repository.Abstractions.Tests.TestHelpers;
+using System.Data;
 
 namespace Repository.Abstractions.Tests
 {
     public class AdoRepositoryTests
     {
+        private readonly AdoRepository<TestEntity> _repository;
+        public AdoRepositoryTests()
+        {
+            _repository = new TestEntityRepository(null, "TestEntity");
+        }
+
         [Theory]
         [InlineData(1)]
         [InlineData(20)]
@@ -18,8 +25,7 @@ namespace Repository.Abstractions.Tests
                 Id = id,
             };
 
-            var repository = new TestEntityRepository(null, "TestEntity");
-            var actual = repository.GetId(entity);
+            var actual = _repository.GetId(entity);
 
             Assert.Equal(entity.Id, actual);
         }
@@ -36,8 +42,35 @@ namespace Repository.Abstractions.Tests
         public void GetParameterName_ShouldPrependSymbolAt()
         {
             var propertyInfo = typeof(TestEntity).GetProperty("Id");
-            var repository = new TestEntityRepository(null, "TestEntity");
             Assert.Equal("@Id", AdoRepository<TestEntity>.GetParameterName(propertyInfo));
+        }
+
+        [Fact]
+        public void GetDbType_Int()
+        {
+            var type = typeof(int);
+            Assert.Equal(DbType.Int32, _repository.GetDbType(type));
+        }
+
+        [Fact]
+        public void GetDbType_String()
+        {
+            var type = typeof(string);
+            Assert.Equal(DbType.String, _repository.GetDbType(type));
+        }
+
+        [Fact]
+        public void GetDbType_DateTime()
+        {
+            var type = typeof(DateTime);
+            Assert.Equal(DbType.DateTime, _repository.GetDbType(type));
+        }
+
+        [Fact]
+        public void GetDbType_Binary()
+        {
+            var type = typeof(byte[]);
+            Assert.Equal(DbType.Binary, _repository.GetDbType(type));
         }
     }
 }
