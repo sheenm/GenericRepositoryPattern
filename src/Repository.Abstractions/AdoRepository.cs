@@ -91,7 +91,7 @@ namespace Repository.Abstractions
             }
         }
 
-        private string GetCommandTextForSave(T item)
+        internal string GetCommandTextForSave(T item)
         {
             var commandTextBuilder = new StringBuilder($"UPDATE {_tableName} SET");
             foreach (var property in _objectProperties)
@@ -104,12 +104,12 @@ namespace Repository.Abstractions
             return commandTextBuilder.ToString();
         }
 
-        private static string GetParameterName(PropertyInfo propertyInfo)
+        internal static string GetParameterName(PropertyInfo propertyInfo)
         {
             return $"@{propertyInfo.Name}";
         }
 
-        private DbType GetDbType(Type type)
+        internal DbType GetDbType(Type type)
         {
             if (type == typeof(int))
             {
@@ -131,7 +131,7 @@ namespace Repository.Abstractions
             throw new NotImplementedException($"There's no converter for type {type.Name} in AdoRepository");
         }
 
-        private int GetId(T item)
+        internal int GetId(T item)
         {
             foreach (var property in _objectProperties)
             {
