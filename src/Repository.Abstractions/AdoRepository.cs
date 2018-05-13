@@ -94,6 +94,27 @@ namespace Repository.Abstractions
             }
         }
 
+        public async Task<int> CreateAsync(T item)
+        {
+            using (var connection = _dbProvider.GetDatabaseConnection())
+            using (var command = connection.CreateCommand())
+            {
+                foreach (var property in _objectProperties)
+                {
+                    if (property.Name == "Id")
+                        continue;
+
+                    command.Parameters.Add(CreateDbParameterFromProperty(command, property, item));
+                }
+
+                command.CommandText = GetCommandTextForCreate(item);
+                command.CommandType = CommandType.Text;
+
+                await connection.OpenAsync();
+                return (int)await command.ExecuteScalarAsync();
+            }
+        }
+
         internal IDbDataParameter CreateDbParameterFromProperty(IDbCommand command, PropertyInfo property, T item)
         {
             var parameter = command.CreateParameter();
@@ -146,6 +167,27 @@ namespace Repository.Abstractions
             return commandTextBuilder.ToString();
         }
 
+        internal string GetCommandTextForCreate(T item)
+        {
+            var commandTextBuilder = new StringBuilder($"INSERT INTO {_tableName}(");
+            foreach (var property in _objectProperties)
+            {
+                if (property.Name != "Id")
+                    commandTextBuilder.Append($"{property.Name},");
+            }
+            commandTextBuilder.Replace(',', ')', commandTextBuilder.Length - 1, 1);
+            commandTextBuilder.Append(" output INSERTED.ID VALUES(");
+
+            foreach (var property in _objectProperties)
+            {
+                if (property.Name != "Id")
+                    commandTextBuilder.Append($"{GetParameterName(property)},");
+            }
+            commandTextBuilder.Replace(',', ')', commandTextBuilder.Length - 1, 1);
+
+            return commandTextBuilder.ToString();
+        }
+
         internal int GetId(T item)
         {
             foreach (var property in _objectProperties)
@@ -156,7 +198,6 @@ namespace Repository.Abstractions
 
             throw new ArgumentException($"Id property was not found in {typeof(T).Name} ");
         }
-
 
         protected abstract T PopulateRecord(IDataReader reader);
     }

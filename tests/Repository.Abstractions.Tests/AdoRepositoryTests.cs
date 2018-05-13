@@ -86,5 +86,19 @@ namespace Repository.Abstractions.Tests
             var actual = _repository.GetCommandTextForSave(item);
             Assert.Equal("UPDATE TestEntity SET Name=@Name, Date=@Date, BinaryData=@BinaryData WHERE Id=1", actual);
         }
+
+        [Fact]
+        public void TestGetCommandForCreate()
+        {
+            var item = new TestEntity
+            {
+                BinaryData = { },
+                Id = 1,
+                Date = DateTime.Now,
+                Name = "Name of item"
+            };
+            var actual = _repository.GetCommandTextForCreate(item);
+            Assert.Equal("INSERT INTO TestEntity(Name,Date,BinaryData) output INSERTED.ID VALUES(@Name,@Date,@BinaryData)", actual);
+        }
     }
 }

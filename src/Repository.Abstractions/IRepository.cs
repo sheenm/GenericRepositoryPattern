@@ -11,5 +11,7 @@ namespace Repository.Abstractions
         Task<IEnumerable<T>> GetByQueryAsync(Func<T, bool> selector);
 
         Task<bool> SaveAsync(T item);
+
+        Task<int> CreateAsync(T item);
     }
 }
