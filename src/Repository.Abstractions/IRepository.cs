@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 
 namespace Repository.Abstractions
 {
     public interface IRepository<T>
     {
-        T GetById(int id);
+        Task<T> GetByIdAsync(int id);
 
-        IEnumerable<T> GetByQuery(Func<T, bool> selector);
+        Task<IEnumerable<T>> GetByQueryAsync(Func<T, bool> selector);
 
-        bool Save(T item);
+        Task<bool> SaveAsync(T item);
     }
 }

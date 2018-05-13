@@ -1,5 +1,4 @@
-using System;
-using System.Data;
+using System.Data.Common;
 using Npgsql;
 using Repository.Abstractions;
 
@@ -14,7 +13,7 @@ namespace GenericRepositoryPattern.Database
             _connectionString = connectionString;
         }
 
-        public IDbConnection GetDatabaseConnection()
+        public DbConnection GetDatabaseConnection()
         {
             return new NpgsqlConnection(_connectionString);
         }

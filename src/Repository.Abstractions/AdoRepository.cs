@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Repository.Abstractions
 {
@@ -20,7 +22,7 @@ namespace Repository.Abstractions
             _objectProperties = typeof(T).GetProperties();
         }
 
-        public T GetById(int id)
+        public async Task<T> GetByIdAsync(int id)
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
             using (var command = connection.CreateCommand())
@@ -35,9 +37,10 @@ namespace Repository.Abstractions
                 command.CommandType = CommandType.Text;
                 command.Parameters.Add(parameter);
 
-                using (var reader = command.ExecuteReader())
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
                 {
-                    if (reader.Read())
+                    if (await reader.ReadAsync())
                     {
                         return PopulateRecord(reader);
                     }
@@ -47,7 +50,7 @@ namespace Repository.Abstractions
             }
         }
 
-        public IEnumerable<T> GetByQuery(Func<T, bool> selector)
+        public async Task<IEnumerable<T>> GetByQueryAsync(Func<T, bool> selector)
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
             using (var command = connection.CreateCommand())
@@ -55,11 +58,12 @@ namespace Repository.Abstractions
                 command.CommandText = "SELECT * FROM {_tableName}";
                 command.CommandType = CommandType.Text;
 
-                using (var reader = command.ExecuteReader())
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
                 {
                     var readerResults = new List<T>();
 
-                    while (reader.Read())
+                    while (await reader.ReadAsync())
                     {
                         readerResults.Add(PopulateRecord(reader));
                     }
@@ -69,40 +73,35 @@ namespace Repository.Abstractions
             }
         }
 
-        public bool Save(T item)
+        public async Task<bool> SaveAsync(T item)
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
             using (var command = connection.CreateCommand())
             {
                 foreach (var property in _objectProperties)
                 {
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = GetParameterName(property);
-                    parameter.Value = property.GetValue(item);
-                    parameter.Direction = ParameterDirection.Input;
-                    parameter.DbType = GetDbType(property.GetType());
-                    command.Parameters.Add(parameter);
+                    if (property.Name == "Id")
+                        continue;
+
+                    command.Parameters.Add(CreateDbParameterFromProperty(command, property, item));
                 }
 
                 command.CommandText = GetCommandTextForSave(item);
                 command.CommandType = CommandType.Text;
 
-                return command.ExecuteNonQuery() == 1;
+                await connection.OpenAsync();
+                return (await command.ExecuteNonQueryAsync()) == 1;
             }
         }
 
-        internal string GetCommandTextForSave(T item)
+        internal IDbDataParameter CreateDbParameterFromProperty(IDbCommand command, PropertyInfo property, T item)
         {
-            var commandTextBuilder = new StringBuilder($"UPDATE {_tableName} SET ");
-            foreach (var property in _objectProperties)
-            {
-                if (property.Name != "Id")
-                    commandTextBuilder.Append($"{property.Name}={GetParameterName(property)}, ");
-            }
-            commandTextBuilder.Remove(commandTextBuilder.Length - 2, 1);
-            commandTextBuilder.Append($"WHERE Id={GetId(item)}");
-
-            return commandTextBuilder.ToString();
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = GetParameterName(property);
+            parameter.Value = property.GetValue(item);
+            parameter.Direction = ParameterDirection.Input;
+            parameter.DbType = GetDbType(property.GetType());
+            return parameter;
         }
 
         internal static string GetParameterName(PropertyInfo propertyInfo)
@@ -130,6 +129,21 @@ namespace Repository.Abstractions
             }
 
             throw new NotImplementedException($"There's no converter for type {type.Name} in AdoRepository");
+        }
+
+
+        internal string GetCommandTextForSave(T item)
+        {
+            var commandTextBuilder = new StringBuilder($"UPDATE {_tableName} SET ");
+            foreach (var property in _objectProperties)
+            {
+                if (property.Name != "Id")
+                    commandTextBuilder.Append($"{property.Name}={GetParameterName(property)}, ");
+            }
+            commandTextBuilder.Remove(commandTextBuilder.Length - 2, 1);
+            commandTextBuilder.Append($"WHERE Id={GetId(item)}");
+
+            return commandTextBuilder.ToString();
         }
 
         internal int GetId(T item)
