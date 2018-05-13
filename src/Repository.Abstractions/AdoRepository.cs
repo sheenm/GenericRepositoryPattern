@@ -52,7 +52,7 @@ namespace Repository.Abstractions
         }
 
         ///<inheritdoc/>
-        public async Task<IEnumerable<T>> GetByQueryAsync(Func<T, bool> selector)
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
             using (var command = connection.CreateCommand())
@@ -70,7 +70,7 @@ namespace Repository.Abstractions
                         readerResults.Add(PopulateRecord(reader));
                     }
 
-                    return readerResults.Where(selector);
+                    return readerResults;
                 }
             }
         }

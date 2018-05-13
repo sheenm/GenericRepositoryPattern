@@ -7,23 +7,23 @@ namespace Repository.Abstractions
     public interface IRepository<T>
     {
         ///<summary>
-        /// Gets a single object form the repo
+        /// Gets a single item form the repo
         ///</summary>
         Task<T> GetByIdAsync(int id);
 
         ///<summary>
-        /// Gets IEnumerable of entities, selected by a query
+        /// Gets All items of an entity
         ///</summary>
-        Task<IEnumerable<T>> GetByQueryAsync(Func<T, bool> selector);
+        Task<IEnumerable<T>> GetAllAsync();
 
         ///<summary>
-        /// Saves an entity in the repo
+        /// Saves an item in the repo
         ///</summary>
         ///<returns>was result successful or not</returns>
         Task<bool> SaveAsync(T item);
 
         ///<summary>
-        /// Creates an new Entity in the repo
+        /// Creates an new item of an entity in the repo
         ///</summary>
         ///<returns>Id of new item</returns>
         Task<int> CreateAsync(T item);
