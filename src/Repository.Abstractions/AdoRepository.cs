@@ -22,6 +22,7 @@ namespace Repository.Abstractions
             _objectProperties = typeof(T).GetProperties();
         }
 
+        ///<inheritdoc/>
         public async Task<T> GetByIdAsync(int id)
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
@@ -50,6 +51,7 @@ namespace Repository.Abstractions
             }
         }
 
+        ///<inheritdoc/>
         public async Task<IEnumerable<T>> GetByQueryAsync(Func<T, bool> selector)
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
@@ -73,6 +75,7 @@ namespace Repository.Abstractions
             }
         }
 
+        ///<inheritdoc/>
         public async Task<bool> SaveAsync(T item)
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
@@ -94,6 +97,7 @@ namespace Repository.Abstractions
             }
         }
 
+        ///<inheritdoc/>
         public async Task<int> CreateAsync(T item)
         {
             using (var connection = _dbProvider.GetDatabaseConnection())
