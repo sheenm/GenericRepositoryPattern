@@ -20,22 +20,22 @@ namespace Repository.Abstractions.Tests
         [InlineData(0)]
         public void GetId_ShouldFindValue(int id)
         {
-            var entity = new TestEntity()
+            var item = new TestEntity()
             {
                 Id = id,
             };
 
-            var actual = _repository.GetId(entity);
+            var actual = _repository.GetId(item);
 
-            Assert.Equal(entity.Id, actual);
+            Assert.Equal(item.Id, actual);
         }
 
         [Fact]
         public void GetId_EntityWithoutID_ShouldThrowArgumentException()
         {
-            var entity = new TestEntityWithoutId();
+            var item = new TestEntityWithoutId();
             var repository = new TestEntityWithoutIdRepository(null, "TestEntityWithoutId");
-            Assert.Throws<ArgumentException>(() => repository.GetId(entity));
+            Assert.Throws<ArgumentException>(() => repository.GetId(item));
         }
 
         [Fact]
@@ -71,6 +71,20 @@ namespace Repository.Abstractions.Tests
         {
             var type = typeof(byte[]);
             Assert.Equal(DbType.Binary, _repository.GetDbType(type));
+        }
+
+        [Fact]
+        public void TestGetCommandTextForSave()
+        {
+            var item = new TestEntity
+            {
+                BinaryData = { },
+                Id = 1,
+                Date = DateTime.Now,
+                Name = "Name of item"
+            };
+            var actual = _repository.GetCommandTextForSave(item);
+            Assert.Equal("UPDATE TestEntity SET Name=@Name, Date=@Date, BinaryData=@BinaryData WHERE Id=1", actual);
         }
     }
 }

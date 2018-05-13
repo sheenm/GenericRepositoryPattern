@@ -93,13 +93,14 @@ namespace Repository.Abstractions
 
         internal string GetCommandTextForSave(T item)
         {
-            var commandTextBuilder = new StringBuilder($"UPDATE {_tableName} SET");
+            var commandTextBuilder = new StringBuilder($"UPDATE {_tableName} SET ");
             foreach (var property in _objectProperties)
             {
-                commandTextBuilder.Append($" {property.Name}={GetParameterName(property)}, ");
+                if (property.Name != "Id")
+                    commandTextBuilder.Append($"{property.Name}={GetParameterName(property)}, ");
             }
-            commandTextBuilder.Remove(commandTextBuilder.Length - 1, 1);
-            commandTextBuilder.Append($" WHERE  Id={GetId(item)}");
+            commandTextBuilder.Remove(commandTextBuilder.Length - 2, 1);
+            commandTextBuilder.Append($"WHERE Id={GetId(item)}");
 
             return commandTextBuilder.ToString();
         }
