@@ -13,13 +13,16 @@ namespace Repository.Abstractions
     {
         IDbConnectionProvider _dbProvider;
         private string _tableName;
-        private PropertyInfo[] _objectProperties;
+        private IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
+        private PropertyInfo _idProperty;
 
         public AdoRepository(IDbConnectionProvider dbProvider, string tableName)
         {
             _dbProvider = dbProvider;
             _tableName = tableName;
-            _objectProperties = typeof(T).GetProperties();
+            var properties = typeof(T).GetProperties();
+            _idProperty = properties.FirstOrDefault(x => x.Name == "Id");
+            _objectPropertiesWithoutId = properties.Where(prop => prop.Name != "Id");
         }
 
         ///<inheritdoc/>
@@ -81,11 +84,8 @@ namespace Repository.Abstractions
             using (var connection = _dbProvider.GetDatabaseConnection())
             using (var command = connection.CreateCommand())
             {
-                foreach (var property in _objectProperties)
+                foreach (var property in _objectPropertiesWithoutId)
                 {
-                    if (property.Name == "Id")
-                        continue;
-
                     command.Parameters.Add(CreateDbParameterFromProperty(command, property, item));
                 }
 
@@ -103,11 +103,8 @@ namespace Repository.Abstractions
             using (var connection = _dbProvider.GetDatabaseConnection())
             using (var command = connection.CreateCommand())
             {
-                foreach (var property in _objectProperties)
+                foreach (var property in _objectPropertiesWithoutId)
                 {
-                    if (property.Name == "Id")
-                        continue;
-
                     command.Parameters.Add(CreateDbParameterFromProperty(command, property, item));
                 }
 
@@ -160,10 +157,9 @@ namespace Repository.Abstractions
         internal string GetCommandTextForSave(T item)
         {
             var commandTextBuilder = new StringBuilder($"UPDATE {_tableName} SET ");
-            foreach (var property in _objectProperties)
+            foreach (var property in _objectPropertiesWithoutId)
             {
-                if (property.Name != "Id")
-                    commandTextBuilder.Append($"{property.Name}={GetParameterName(property)}, ");
+                commandTextBuilder.Append($"{property.Name}={GetParameterName(property)}, ");
             }
             commandTextBuilder.Remove(commandTextBuilder.Length - 2, 1);
             commandTextBuilder.Append($"WHERE Id={GetId(item)}");
@@ -174,18 +170,16 @@ namespace Repository.Abstractions
         internal string GetCommandTextForCreate(T item)
         {
             var commandTextBuilder = new StringBuilder($"INSERT INTO {_tableName}(");
-            foreach (var property in _objectProperties)
+            foreach (var property in _objectPropertiesWithoutId)
             {
-                if (property.Name != "Id")
-                    commandTextBuilder.Append($"{property.Name},");
+                commandTextBuilder.Append($"{property.Name},");
             }
             commandTextBuilder.Replace(',', ')', commandTextBuilder.Length - 1, 1);
             commandTextBuilder.Append(" output INSERTED.ID VALUES(");
 
-            foreach (var property in _objectProperties)
+            foreach (var property in _objectPropertiesWithoutId)
             {
-                if (property.Name != "Id")
-                    commandTextBuilder.Append($"{GetParameterName(property)},");
+                commandTextBuilder.Append($"{GetParameterName(property)},");
             }
             commandTextBuilder.Replace(',', ')', commandTextBuilder.Length - 1, 1);
 
@@ -194,13 +188,9 @@ namespace Repository.Abstractions
 
         internal int GetId(T item)
         {
-            foreach (var property in _objectProperties)
-            {
-                if (property.Name == "Id")
-                    return (int)property.GetValue(item);
-            }
-
-            throw new ArgumentException($"Id property was not found in {typeof(T).Name} ");
+            return _idProperty != null
+            ? (int)_idProperty.GetValue(item)
+            : throw new ArgumentException($"Id property was not found in {typeof(T).Name} ");
         }
 
         protected abstract T PopulateRecord(IDataReader reader);
