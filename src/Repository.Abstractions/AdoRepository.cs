@@ -12,9 +12,9 @@ namespace Repository.Abstractions
     public abstract class AdoRepository<T> : IRepository<T>
     {
         IDbConnectionProvider _dbProvider;
-        private string _tableName;
-        private IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
-        private PropertyInfo _idProperty;
+        protected string _tableName;
+        protected IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
+        protected PropertyInfo _idProperty;
 
         public AdoRepository(IDbConnectionProvider dbProvider, string tableName)
         {
@@ -108,7 +108,7 @@ namespace Repository.Abstractions
                     command.Parameters.Add(CreateDbParameterFromProperty(command, property, item));
                 }
 
-                command.CommandText = GetCommandTextForCreate(item);
+                command.CommandText = GetCommandTextForCreate();
                 command.CommandType = CommandType.Text;
 
                 await connection.OpenAsync();
@@ -131,7 +131,7 @@ namespace Repository.Abstractions
             return $"@{propertyInfo.Name}";
         }
 
-        internal DbType GetDbType(Type type)
+        internal static DbType GetDbType(Type type)
         {
             if (type == typeof(int))
             {
@@ -167,7 +167,7 @@ namespace Repository.Abstractions
             return commandTextBuilder.ToString();
         }
 
-        internal string GetCommandTextForCreate(T item)
+        internal virtual string GetCommandTextForCreate()
         {
             var commandTextBuilder = new StringBuilder($"INSERT INTO {_tableName}(");
             foreach (var property in _objectPropertiesWithoutId)

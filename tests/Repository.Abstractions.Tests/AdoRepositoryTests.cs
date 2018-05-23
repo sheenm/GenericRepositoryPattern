@@ -2,6 +2,8 @@ using System;
 using Xunit;
 using Repository.Abstractions.Tests.TestHelpers;
 using System.Data;
+using Repository.Abstractions.Tests.TestHelpers.Database;
+using System.Threading.Tasks;
 
 namespace Repository.Abstractions.Tests
 {
@@ -49,28 +51,28 @@ namespace Repository.Abstractions.Tests
         public void GetDbType_Int()
         {
             var type = typeof(int);
-            Assert.Equal(DbType.Int32, _repository.GetDbType(type));
+            Assert.Equal(DbType.Int32, AdoRepository<TestEntity>.GetDbType(type));
         }
 
         [Fact]
         public void GetDbType_String()
         {
             var type = typeof(string);
-            Assert.Equal(DbType.String, _repository.GetDbType(type));
+            Assert.Equal(DbType.String, AdoRepository<TestEntity>.GetDbType(type));
         }
 
         [Fact]
         public void GetDbType_DateTime()
         {
             var type = typeof(DateTime);
-            Assert.Equal(DbType.DateTime, _repository.GetDbType(type));
+            Assert.Equal(DbType.DateTime, AdoRepository<TestEntity>.GetDbType(type));
         }
 
         [Fact]
         public void GetDbType_Binary()
         {
             var type = typeof(byte[]);
-            Assert.Equal(DbType.Binary, _repository.GetDbType(type));
+            Assert.Equal(DbType.Binary, AdoRepository<TestEntity>.GetDbType(type));
         }
 
         [Fact]
@@ -97,7 +99,7 @@ namespace Repository.Abstractions.Tests
                 Date = DateTime.Now,
                 Name = "Name of item"
             };
-            var actual = _repository.GetCommandTextForCreate(item);
+            var actual = _repository.GetCommandTextForCreate();
             Assert.Equal("INSERT INTO TestEntity(Name,Date,BinaryData) output INSERTED.ID VALUES(@Name,@Date,@BinaryData)", actual);
         }
     }
