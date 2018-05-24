@@ -2,7 +2,6 @@ using System;
 using Xunit;
 using Repository.Abstractions.Tests.TestHelpers;
 using System.Data;
-using Repository.Abstractions.Tests.TestHelpers.Database;
 using System.Threading.Tasks;
 
 namespace Repository.Abstractions.Tests

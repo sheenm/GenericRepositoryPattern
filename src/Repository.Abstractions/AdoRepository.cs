@@ -13,16 +13,20 @@ namespace Repository.Abstractions
     {
         IDbConnectionProvider _dbProvider;
         protected string _tableName;
-        protected IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
-        protected PropertyInfo _idProperty;
+        protected static readonly IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
+        protected static readonly PropertyInfo _idProperty;
+
+        static AdoRepository()
+        {
+            var properties = typeof(T).GetProperties();
+            _idProperty = properties.FirstOrDefault(x => x.Name == "Id");
+            _objectPropertiesWithoutId = properties.Where(prop => prop.Name != "Id");
+        }
 
         public AdoRepository(IDbConnectionProvider dbProvider, string tableName)
         {
             _dbProvider = dbProvider;
             _tableName = tableName;
-            var properties = typeof(T).GetProperties();
-            _idProperty = properties.FirstOrDefault(x => x.Name == "Id");
-            _objectPropertiesWithoutId = properties.Where(prop => prop.Name != "Id");
         }
 
         ///<inheritdoc/>
