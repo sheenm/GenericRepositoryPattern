@@ -13,8 +13,8 @@ namespace Repository.Abstractions
 {
     public abstract class AdoRepository<T> : IRepository<T>
     {
-        IDbConnectionFactory _connectionFactory;
-        protected string _tableName;
+        private readonly IDbConnectionFactory _connectionFactory;
+        protected readonly string _tableName;
         protected static readonly IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
         protected static readonly PropertyInfo _idProperty;
 
@@ -158,7 +158,6 @@ namespace Repository.Abstractions
 
             throw new NotImplementedException($"There's no converter for type {type.Name} in AdoRepository");
         }
-
 
         protected string GetCommandTextForSave(T item)
         {
