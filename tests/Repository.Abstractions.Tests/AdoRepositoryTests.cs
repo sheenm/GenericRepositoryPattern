@@ -4,15 +4,15 @@ using Repository.Abstractions.Tests.TestHelpers;
 using System.Data;
 using Repository.Abstractions.Tests.TestHelpers.Database;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using System.Data.SqlClient;
 
 namespace Repository.Abstractions.Tests
 {
-    public class AdoRepositoryTests
+    public class AdoRepositoryTests : AdoRepository<TestEntity>
     {
-        private readonly AdoRepository<TestEntity> _repository;
-        public AdoRepositoryTests()
+        public AdoRepositoryTests() : base(null, "TestEntity")
         {
-            _repository = new TestEntityRepository(null, "TestEntity");
         }
 
         [Theory]
@@ -27,17 +27,9 @@ namespace Repository.Abstractions.Tests
                 Id = id,
             };
 
-            var actual = _repository.GetId(item);
+            var actual = GetId(item);
 
             Assert.Equal(item.Id, actual);
-        }
-
-        [Fact]
-        public void GetId_EntityWithoutID_ShouldThrowArgumentException()
-        {
-            var item = new TestEntityWithoutId();
-            var repository = new TestEntityWithoutIdRepository(null, "TestEntityWithoutId");
-            Assert.Throws<ArgumentException>(() => repository.GetId(item));
         }
 
         [Fact]
@@ -85,12 +77,12 @@ namespace Repository.Abstractions.Tests
                 Date = DateTime.Now,
                 Name = "Name of item"
             };
-            var actual = _repository.GetCommandTextForSave(item);
+            var actual = GetCommandTextForSave(item);
             Assert.Equal("UPDATE TestEntity SET Name=@Name, Date=@Date, BinaryData=@BinaryData WHERE Id=1", actual);
         }
 
         [Fact]
-        public void TestGetCommandForCreate()
+        public void TestGetCommandForCreate_MsSqlConnection()
         {
             var item = new TestEntity
             {
@@ -99,8 +91,27 @@ namespace Repository.Abstractions.Tests
                 Date = DateTime.Now,
                 Name = "Name of item"
             };
-            var actual = _repository.GetCommandTextForCreate();
+            var actual = GetCommandTextForCreate(new SqlCommand());
             Assert.Equal("INSERT INTO TestEntity(Name,Date,BinaryData) output INSERTED.ID VALUES(@Name,@Date,@BinaryData)", actual);
+        }
+
+        [Fact]
+        public void TestGetCommandForCreate_SqliteConnection()
+        {
+            var item = new TestEntity
+            {
+                BinaryData = { },
+                Id = 1,
+                Date = DateTime.Now,
+                Name = "Name of item"
+            };
+            var actual = GetCommandTextForCreate(new SqliteCommand());
+            Assert.Equal("INSERT INTO TestEntity(Name,Date,BinaryData) VALUES(@Name,@Date,@BinaryData);SELECT last_insert_rowid();", actual);
+        }
+
+        protected override TestEntity PopulateRecord(IDataReader reader)
+        {
+            throw new NotImplementedException();
         }
     }
 }
