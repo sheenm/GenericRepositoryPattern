@@ -13,24 +13,28 @@ namespace Repository.Abstractions
 {
     public abstract class AdoRepository<T> : IRepository<T>
     {
-        IDbConnectionFactory _dbProvider;
+        IDbConnectionFactory _connectionFactory;
         protected string _tableName;
-        protected IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
-        protected PropertyInfo _idProperty;
+        protected static readonly IEnumerable<PropertyInfo> _objectPropertiesWithoutId;
+        protected static readonly PropertyInfo _idProperty;
 
-        public AdoRepository(IDbConnectionFactory dbProvider, string tableName)
+        static AdoRepository()
         {
-            _dbProvider = dbProvider;
-            _tableName = tableName;
             var properties = typeof(T).GetProperties();
             _idProperty = properties.FirstOrDefault(x => x.Name == "Id");
             _objectPropertiesWithoutId = properties.Where(prop => prop.Name != "Id");
         }
 
+        public AdoRepository(IDbConnectionFactory dbProvider, string tableName)
+        {
+            _connectionFactory = dbProvider;
+            _tableName = tableName;
+        }
+
         ///<inheritdoc/>
         public async Task<T> GetByIdAsync(int id)
         {
-            using (var connection = _dbProvider.CreateConnection())
+            using (var connection = _connectionFactory.CreateConnection())
             using (var command = connection.CreateCommand())
             {
                 var parameter = command.CreateParameter();
@@ -59,7 +63,7 @@ namespace Repository.Abstractions
         ///<inheritdoc/>
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            using (var connection = _dbProvider.CreateConnection())
+            using (var connection = _connectionFactory.CreateConnection())
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM {_tableName}";
@@ -83,7 +87,7 @@ namespace Repository.Abstractions
         ///<inheritdoc/>
         public async Task<bool> SaveAsync(T item)
         {
-            using (var connection = _dbProvider.CreateConnection())
+            using (var connection = _connectionFactory.CreateConnection())
             using (var command = connection.CreateCommand())
             {
                 foreach (var property in _objectPropertiesWithoutId)
@@ -102,7 +106,7 @@ namespace Repository.Abstractions
         ///<inheritdoc/>
         public async Task<int> CreateAsync(T item)
         {
-            using (var connection = _dbProvider.CreateConnection())
+            using (var connection = _connectionFactory.CreateConnection())
             using (var command = connection.CreateCommand())
             {
                 foreach (var property in _objectPropertiesWithoutId)
